@@ -26,7 +26,7 @@ import javax.swing.JTextPane;
 import javax.swing.SwingConstants;
 
 public class Editor extends JFrame {
-    public static String VERSION = "v1.0.0";
+    public static String VERSION = "v1.0.1";
 
     private JTextArea textInput;
     private JButton editorButton0;
@@ -353,12 +353,13 @@ public class Editor extends JFrame {
                         overflowLigne=true;
                     }
                 } // fin de la ligne
-                pageTxt += ligneTxt+(ligneTxt.contains("¤¤")?"":"\n");;
-                System.out.println("Fin ligne ("+idLigne+"-"+idPage+"): "+(ligneTxt.contains("¤¤")?"Rien":"\\n"));
+                pageTxt += ligneTxt;
+                //System.out.println("Fin ligne ("+idLigne+"-"+idPage+"): "+(ligneTxt.contains("¤¤")?"Rien":"\\n"));
                 idLigne++;
             } // fin de la page
             res.add(pageTxt.replaceAll("¤¤", "\n")); // On ajoute la page au livre / .replaceAll("¤¤", "\n")
             idPage++;
+            //System.out.println("Fin page");
         } // fin du livre
         return res;
     }
