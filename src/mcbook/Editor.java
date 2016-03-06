@@ -1,7 +1,6 @@
 package mcbook;
 
 import java.awt.BorderLayout;
-import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
@@ -19,7 +18,7 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JLayeredPane;
-//import javax.swing.JOptionPane;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
@@ -28,7 +27,7 @@ import javax.swing.SwingConstants;
 
 public class Editor extends JFrame {
     public static String VERSION = "v1.0.0";
-    
+
     private JTextArea textInput;
     private JButton editorButton0;
     private JButton editorButton1;
@@ -47,6 +46,7 @@ public class Editor extends JFrame {
     private HashMap<String,String> replace;
     private HashMap<String,String> MC_Colors;
     private ColorPicker colorPicker;
+    private Updater updater;
     private String prefix = "<style>"
                 +"em{text-decoration: underline;font-style: normal;}"
                 +"p{margin:none;padding:none;font-size:10px;}"
@@ -86,6 +86,8 @@ public class Editor extends JFrame {
         replace.put("o", "i");
         replace.put("k", "span");
         colorPicker = new ColorPicker();
+        updater = new Updater();
+        updater.check(getContentPane());
     }
 
     private JPanel initGUI() {
@@ -93,7 +95,7 @@ public class Editor extends JFrame {
         body.setLayout(new BorderLayout());
 
         body.add(new JLabel("MCBook by Billi ("+VERSION+")", SwingConstants.RIGHT), BorderLayout.SOUTH);
-        
+
         try {
             JPanel content = new JPanel();
             content.setLayout(new BorderLayout());
@@ -147,7 +149,7 @@ public class Editor extends JFrame {
             bookContent.setBounds(20,15,160,260);
             book.add(bookContent,1);
             output.add(book, BorderLayout.CENTER);
-            
+
             JPanel bookBottomPanel = new JPanel();
             bookBottomPanel.setLayout(new BorderLayout());
             copy = new JButton("Copier");
@@ -166,7 +168,7 @@ public class Editor extends JFrame {
             bookBottomPanel.add(outputBtns,BorderLayout.SOUTH);
             output.add(bookBottomPanel, BorderLayout.SOUTH);
             content.add(output,BorderLayout.EAST);
-            
+
             body.add(content, BorderLayout.CENTER);
 
         } catch(IOException e) {
@@ -191,7 +193,7 @@ public class Editor extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 prev();
             }
-        });  
+        });
         next.addActionListener(new ActionListener() {
 
             @Override
@@ -205,7 +207,7 @@ public class Editor extends JFrame {
                 StringSelection selection = new StringSelection(pages.get(idPage));
                 Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
                 clipboard.setContents(selection, selection);
-                //JOptionPane.showMessageDialog(getContentPane(), "Texte copié !");
+                JOptionPane.showMessageDialog(getContentPane(), "Texte copié !");
            }
         });
         editorButton0.addActionListener(new ActionListener() { // Italic
@@ -251,7 +253,7 @@ public class Editor extends JFrame {
             }
         });
     }
-    
+
     private void setTextFormat(char f){
         int start = textInput.getSelectionStart();
         int end = textInput.getSelectionEnd();
@@ -274,7 +276,7 @@ public class Editor extends JFrame {
         textInput.setSelectionEnd(end+4);
         convert();
     }
-    
+
     private void convert() {
         System.out.println("Conversion en cours ...");
         pages = readPages(textInput.getText());
@@ -290,7 +292,7 @@ public class Editor extends JFrame {
         }
         prev.setEnabled(false);
     }
-    
+
     private void prev() {
         idPage--;
         bookContent.setText(parseMCFormat(pages.get(idPage)));
@@ -299,7 +301,7 @@ public class Editor extends JFrame {
         page.setText("  "+(idPage+1)+"/"+pages.size()+"  ");
         copy.setText("Copier");
     }
-    
+
     private void next() {
         idPage++;
         bookContent.setText(parseMCFormat(pages.get(idPage)));
@@ -308,7 +310,7 @@ public class Editor extends JFrame {
         page.setText("  "+(idPage+1)+"/"+pages.size()+"  ");
         copy.setText("Copier");
     }
-    
+
     public static ArrayList<String> readPages(String text) { // TODO >>> Des fois on tombe sur une boucle infinie ?!
         text=text.replaceAll("\r\n", "¤¤");
         text=text.replaceAll("\r", "¤¤");
@@ -344,15 +346,15 @@ public class Editor extends JFrame {
                             finMot=true;
                         }
                     } // fin du mot
-                    if (idCharMot<idCharLigne+19) { // si le mot ne dépasse pas la fin de page alors on l'ajoute a la page
+                    if (idCharMot<idCharLigne+19) { // si le mot ne dépasse pas la fin de la ligne alors on l'ajoute a la page
                         ligneTxt += motTxt;
                         idChar=idCharMot;
                     } else {
                         overflowLigne=true;
                     }
                 } // fin de la ligne
-                pageTxt += ligneTxt+(ligneTxt.contains("¤¤")?"":"\n");
-                //System.out.println("Fin ligne ("+idLigne+"-"+idPage+"): "+(ligneTxt.contains("¤¤")?"Rien":"\\n"));
+                pageTxt += ligneTxt+(ligneTxt.contains("¤¤")?"":"\n");;
+                System.out.println("Fin ligne ("+idLigne+"-"+idPage+"): "+(ligneTxt.contains("¤¤")?"Rien":"\\n"));
                 idLigne++;
             } // fin de la page
             res.add(pageTxt.replaceAll("¤¤", "\n")); // On ajoute la page au livre / .replaceAll("¤¤", "\n")
@@ -360,7 +362,7 @@ public class Editor extends JFrame {
         } // fin du livre
         return res;
     }
-    
+
     public String parseMCFormat(String in) { // test string : §n§2Alpha§r §9Beta§0 Gamma
         in = in.replaceAll("<", "&#60;"); // When having §r close color and then re-open to have well-formed html.
         in = in.replaceAll(">", "&#62;");
